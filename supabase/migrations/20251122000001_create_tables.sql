@@ -28,7 +28,7 @@ CREATE TABLE inventory (
   user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   barcode text NOT NULL,
   product_name text NOT NULL,
-  category text NOT NULL,
+  category text NOT NULL CHECK (category IN ('Dairy', 'Meat', 'Seafood', 'Produce_Leafy', 'Produce_Hard', 'Produce_Fruit', 'Bread', 'Eggs', 'Deli', 'Pantry', 'Frozen')),
   image_url text,
   quantity int DEFAULT 1 CHECK (quantity >= 0),
   added_date timestamp DEFAULT now(),
@@ -42,7 +42,6 @@ CREATE TABLE inventory (
 
 CREATE INDEX idx_inventory_user_expiry ON inventory(user_id, expiration_date);
 CREATE INDEX idx_inventory_barcode ON inventory(barcode);
-CREATE INDEX idx_inventory_user_id ON inventory(user_id);
 
 -- Recipe history table
 CREATE TABLE recipe_history (
