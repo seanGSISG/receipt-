@@ -38,6 +38,10 @@ CREATE OR REPLACE FUNCTION get_expiring_items(
   quantity int
 ) AS $$
 BEGIN
+  IF p_days < 0 THEN
+    RAISE EXCEPTION 'p_days must be non-negative, got %', p_days;
+  END IF;
+
   RETURN QUERY
   SELECT
     i.id,
