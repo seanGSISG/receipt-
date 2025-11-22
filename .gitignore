@@ -1,0 +1,33 @@
+# Environment files (production only)
+# .env.local with default Supabase keys is committed for local development
+.env.production
+.env.*.production
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Playwright
+playwright-report/
+test-results/
