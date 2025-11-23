@@ -13,6 +13,61 @@ interface LLMRankingResult {
   expiring_ingredients_used: string[]
 }
 
+function extractJSON(content: string): LLMRankingResult[] {
+  // Extract JSON from potential markdown code blocks
+  const jsonMatch = content.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) {
+    throw new Error('Failed to extract JSON array from LLM response')
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(jsonMatch[0])
+  } catch (error) {
+    throw new Error('Failed to parse JSON from LLM response')
+  }
+
+  // Validate structure
+  if (!Array.isArray(parsed)) {
+    throw new Error('LLM response is not an array')
+  }
+
+  if (parsed.length === 0) {
+    throw new Error('LLM response returned empty array')
+  }
+
+  // Validate each result has required fields
+  for (let i = 0; i < parsed.length; i++) {
+    const result = parsed[i]
+    if (typeof result !== 'object' || result === null) {
+      throw new Error(`LLM response item ${i} is not an object`)
+    }
+
+    const requiredFields = ['recipe_id', 'rank', 'reasoning', 'expiring_ingredients_used']
+    for (const field of requiredFields) {
+      if (!(field in result)) {
+        throw new Error(`LLM response item ${i} missing required field: ${field}`)
+      }
+    }
+
+    // Type-check specific fields
+    if (typeof result.recipe_id !== 'string') {
+      throw new Error(`LLM response item ${i} has invalid recipe_id type`)
+    }
+    if (typeof result.rank !== 'number') {
+      throw new Error(`LLM response item ${i} has invalid rank type`)
+    }
+    if (typeof result.reasoning !== 'string') {
+      throw new Error(`LLM response item ${i} has invalid reasoning type`)
+    }
+    if (!Array.isArray(result.expiring_ingredients_used)) {
+      throw new Error(`LLM response item ${i} has invalid expiring_ingredients_used type`)
+    }
+  }
+
+  return parsed as LLMRankingResult[]
+}
+
 function buildPrompt(
   recipes: SpoonacularRecipe[],
   inventory: InventoryItem[],
@@ -92,13 +147,7 @@ async function callClaude(prompt: string): Promise<LLMRankingResult[]> {
   const data = await response.json()
   const content = data.content[0].text
 
-  // Extract JSON from potential markdown code blocks
-  const jsonMatch = content.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    throw new Error('Failed to parse Claude response')
-  }
-
-  return JSON.parse(jsonMatch[0])
+  return extractJSON(content)
 }
 
 async function callOpenAI(prompt: string): Promise<LLMRankingResult[]> {
@@ -135,12 +184,7 @@ async function callOpenAI(prompt: string): Promise<LLMRankingResult[]> {
   const data = await response.json()
   const content = data.choices[0].message.content
 
-  const jsonMatch = content.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) {
-    throw new Error('Failed to parse OpenAI response')
-  }
-
-  return JSON.parse(jsonMatch[0])
+  return extractJSON(content)
 }
 
 async function callOllama(prompt: string): Promise<LLMRankingResult[]> {
@@ -164,7 +208,7 @@ async function callOllama(prompt: string): Promise<LLMRankingResult[]> {
   const data = await response.json()
   const content = data.response
 
-  return JSON.parse(content)
+  return extractJSON(content)
 }
 
 export async function rankRecipesWithLLM(
