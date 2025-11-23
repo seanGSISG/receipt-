@@ -10,6 +10,39 @@ A mobile-first Progressive Web App that helps reduce food waste by tracking groc
 - 🔄 **Real-time Sync**: Inventory updates instantly across devices
 - 📝 **Manual Entry**: Add items without barcodes
 
+## Phase 2: Recipe Engine ✅
+
+Smart recipe suggestions powered by AI.
+
+### Features
+
+- 🤖 **AI-Powered Ranking**: Claude, OpenAI, or Ollama ranks recipes by expiring ingredients
+- 🍳 **Recipe API Integration**: Spoonacular provides recipe data
+- ⚠️ **Expiring Ingredient Highlights**: Visual indicators for soon-to-expire items
+- 🎯 **Optimization Modes**:
+  - Make it last: Prioritize using expiring ingredients
+  - Feed the family: Maximize servings per household size
+- ✅ **Cook This Action**: Mark ingredients as consumed, log to history
+
+### Setup
+
+See [RECIPE_ENGINE_SETUP.md](docs/RECIPE_ENGINE_SETUP.md) for detailed setup instructions.
+
+Quick start:
+
+```bash
+# Add API keys to Supabase
+supabase secrets set SPOONACULAR_API_KEY=your_key
+supabase secrets set ANTHROPIC_API_KEY=your_key
+
+# Deploy edge function
+supabase functions deploy suggest-recipes
+
+# Test
+npm test
+npx playwright test tests/e2e/recipe-suggestions.spec.ts
+```
+
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
